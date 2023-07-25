@@ -21,7 +21,7 @@
     </style>
 </head>
 
-<body class="">
+<body>
     <div class="container mt-4">
         <div class="card text-bg-dark mb-3 text-start" style="height: 300px;">
             <div class="card-header fs-4">Question</div>
@@ -37,29 +37,60 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-end">
-            <div class="me-2 align-items-center dflex">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" onchange="is_random = !is_random"
-                        id="flexCheckDefault">
-                    <label class="form-check-label" for="flexCheckDefault">
-                        Random
-                    </label>
+        <div class="d-flex justify-content-end gap-3" style="min-height: 120px;">
+            <div class="card text-bg-dark mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Categories</h5>
+
+                    <div class="card-text d-flex flex-wrap gap-3 align-items-start" id="category">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="category" checked
+                                onchange="selectCategory()" id="ALL">
+                            <label class="form-check-label" for="ALL">
+                                ALL
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="me-2">
-                <div class="input-group input-group-lg">
-                    <span class="input-group-text">Level</span>
-                    <select id="level-input" class="form-select" aria-label="Default select example"
-                        onchange="changeLevel()">
-                        <option selected value="1">Easy</option>
-                        <option value="2">Hard</option>
-                    </select>
+
+            <div class="card text-bg-dark mb-3" style="width: 430px">
+                <div class=" card-body">
+                    <h5 class="card-title">Options</h5>
+
+                    <div class="d-flex flex-nowrap gap-3">
+
+                        <div class="form-check align-self-center">
+                            <input class="form-check-input" type="checkbox" onchange="is_random = !is_random"
+                                id="flexCheckDefault">
+                            <label class="form-check-label" for="flexCheckDefault">
+                                Random
+                            </label>
+                        </div>
+                        <div class="me-2">
+                            <div class="input-group input-group-lg">
+                                <span class="input-group-text">Level</span>
+                                <select id="level-input" class="form-select" aria-label="Default select example"
+                                    onchange="setFilterQuestionset()">
+                                    <option selected value="1">Easy</option>
+                                    <option value="2">Hard</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="flex-1">
-                <button type="button" class="btn btn-lg btn-warning" onclick="RandomQuestion()">Run</button>
-                <button type="button" class="btn btn-lg btn-danger" onclick="Answer()">Answer</button>
+
+            <div class="card text-bg-dark mb-3" style="width: 300px;">
+                <div class="card-body">
+                    <h5 class="card-title">Command</h5>
+
+                    <div class="flex-1">
+                        <button type="button" class="btn btn-lg btn-warning" style="min-width:80px"
+                            onclick="RandomQuestion()">Run</button>
+                        <button type="button" class="btn btn-lg btn-danger" onclick="Answer()">Answer</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -74,13 +105,16 @@
         var answer_dom = document.getElementById("answer");
         var run_audio = new Audio('run1.mp3');
         var quack_audio = new Audio('quack.mp3');
-        var filtered_question_list = question_list;
+        var question_list = [];
+        var filtered_question_list = [];
         var question = {};
         var question_index = 0;
         var level = 1
         var is_answer = false
         var is_runing = false
         var is_random = false
+        let selectedCategories = [];
+        let category_list = Object.keys(database)
 
         function Answer() {
             if (is_runing) {
@@ -91,14 +125,18 @@
         }
 
         function RandomQuestion() {
-            if (is_runing) {
+            if (is_runing || filtered_question_list.length == 0) {
                 return
             }
             if (is_random) {
                 question = filtered_question_list[Math.floor(Math.random() * filtered_question_list.length)];
             } else {
                 question = filtered_question_list[question_index];
-                question_index++;
+                if (question_index == filtered_question_list.length - 1) {
+                    question_index = 0
+                } else {
+                    question_index++;
+                }
             }
             typingText(question.question, question_dom, run_audio);
             answer_dom.innerHTML = '...';
@@ -134,12 +172,67 @@
             type();
         }
 
-        function changeLevel() {
+        function setFilterQuestionset() {
             level = document.getElementById("level-input").value
             level = parseInt(level)
             question_index = 0
             filtered_question_list = question_list.filter((item) => item.level == level)
+
         }
+
+        function setCategoryDOM() {
+            let category_dom = document.getElementById("category");
+
+            // category_dom.innerHTML = ""
+            for (let i = 0; i < category_list.length; i++) {
+
+                var str = `<div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="category" onchange="selectCategory()"
+                        id="${category_list[i]}">
+                        <label class="form-check-label" for="${category_list[i]}">
+                            ${category_list[i]}
+                            </label>
+                        </div>`
+                category_dom.insertAdjacentHTML('beforeend', str)
+            }
+        }
+
+        async function selectCategory() {
+            const checkboxCategories = document.querySelectorAll('input[type="checkbox"][name="category"]');
+
+            if (selectedCategories.length == category_list.length) {
+                checkboxCategories.forEach(radio => {
+                    radio.checked = false
+                })
+            }
+            selectedCategories = []
+
+
+            checkboxCategories.forEach(radio => {
+                if (radio.checked) {
+                    selectedCategories.push(radio.id);
+                }
+            });
+
+            if (selectedCategories.includes("ALL")) {
+                selectedCategories = category_list
+                checkboxCategories.forEach(radio => {
+                    radio.checked = true
+                })
+            }
+
+            await setQuestionSet()
+            await setFilterQuestionset()
+        }
+
+        function setQuestionSet() {
+            question_list = []
+            for (let i = 0; i < selectedCategories.length; i++) {
+                question_list = question_list.concat(database[selectedCategories[i]])
+            }
+
+        }
+
 
         document.addEventListener("keydown", function (event) {
             if (event.code === "Space" && !is_runing) {
@@ -152,7 +245,8 @@
             }
         });
 
-        changeLevel()
+        setCategoryDOM()
+        selectCategory()
         RandomQuestion();
     </script>
 </body>

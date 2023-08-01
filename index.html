@@ -30,10 +30,10 @@
             </div>
         </div>
 
-        <div class="card text-bg-danger mb-3 text-start" style="height: 200px;">
+        <div class="card text-bg-danger mb-3 text-start" style="height: 400px;">
             <div class="card-header fs-4">Answer</div>
             <div class="card-body">
-                <h3 class="text-light fs-1" id="answer">FROM</h3>
+                <h3 class="text-light fs-2" id="answer" style="white-space: pre-line;">FROM</h3>
             </div>
         </div>
 
@@ -72,8 +72,8 @@
                                 <span class="input-group-text">Level</span>
                                 <select id="level-input" class="form-select" aria-label="Default select example"
                                     onchange="setFilterQuestionset()">
-                                    <option selected value="1">Easy</option>
-                                    <option value="2">Hard</option>
+                                    <option value="1">Easy</option>
+                                    <option selected value="2">Hard</option>
                                 </select>
                             </div>
                         </div>
@@ -109,7 +109,7 @@
         var filtered_question_list = [];
         var question = {};
         var question_index = 0;
-        var level = 1
+        var level = 2
         var is_answer = false
         var is_runing = false
         var is_random = false
